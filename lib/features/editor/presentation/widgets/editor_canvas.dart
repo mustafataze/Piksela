@@ -4,19 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_editor_app/core/utils/color_matrix_helper.dart';
 import 'package:photo_editor_app/features/editor/presentation/providers/editor_providers.dart';
+import 'package:photo_editor_app/features/editor/presentation/screens/editor_page.dart'; // EditorTool için
+import 'package:photo_editor_app/features/editor/presentation/widgets/drawing_painter.dart';
 import 'package:photo_editor_app/features/editor/presentation/widgets/interactive_text.dart';
 
-/// Fotoğrafı, filtreleri ve metinleri gösteren ana tuval alanı.
+/// Fotoğrafı, filtreleri, çizimleri ve metinleri gösteren ana tuval alanı.
 class EditorCanvas extends ConsumerWidget {
   final GlobalKey canvasKey;
   final File initialImageFile;
   final VoidCallback onEditSelectedText;
+  final EditorTool currentTool;
 
   const EditorCanvas({
     super.key,
     required this.canvasKey,
     required this.initialImageFile,
     required this.onEditSelectedText,
+    required this.currentTool,
   });
 
   @override
@@ -36,6 +40,22 @@ class EditorCanvas extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () => editorNotifier.selectText(null),
+      // Çizim hareketlerini yakalamak için GestureDetector
+      onPanStart: (details) {
+        if (currentTool == EditorTool.drawing) {
+          editorNotifier.startDrawing(details.localPosition);
+        }
+      },
+      onPanUpdate: (details) {
+        if (currentTool == EditorTool.drawing) {
+          editorNotifier.updateDrawing(details.localPosition);
+        }
+      },
+      onPanEnd: (details) {
+        if (currentTool == EditorTool.drawing) {
+          editorNotifier.endDrawing();
+        }
+      },
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -44,8 +64,19 @@ class EditorCanvas extends ConsumerWidget {
               key: canvasKey,
               child: Stack(
                 alignment: Alignment.center,
+                fit: StackFit.expand,
                 children: [
-                  ColorFiltered(colorFilter: ColorFilter.matrix(finalMatrix), child: Image.file(editorState.imageFile)),
+                  // 1. Katman: Fotoğraf ve Filtreler
+                  ColorFiltered(
+                    colorFilter: ColorFilter.matrix(finalMatrix),
+                    child: Image.file(editorState.imageFile, fit: BoxFit.contain),
+                  ),
+                  // 2. Katman: Çizimler
+                  CustomPaint(
+                    painter: DrawingPainter(drawings: editorState.drawings),
+                    child: Container(),
+                  ),
+                  // 3. Katman: Metinler
                   ...editorState.texts.map(
                     (text) => InteractiveTextWidget(textElement: text, initialImageFile: initialImageFile),
                   ),
@@ -53,6 +84,7 @@ class EditorCanvas extends ConsumerWidget {
               ),
             ),
           ),
+          // Metin düzenleme butonları (en üstte)
           if (editorState.selectedTextId != null)
             Positioned(
               top: 10,

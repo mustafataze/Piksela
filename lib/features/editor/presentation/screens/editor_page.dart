@@ -15,7 +15,8 @@ import 'package:photo_editor_app/features/editor/presentation/widgets/editor_can
 import 'package:photo_editor_app/features/editor/presentation/widgets/text_editor_dialog.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 
-enum EditorTool { none, filters, adjustments }
+// DEĞİŞİKLİK: Yeni çizim aracı eklendi
+enum EditorTool { none, filters, adjustments, drawing }
 
 class EditorPage extends ConsumerStatefulWidget {
   final File initialImageFile;
@@ -122,6 +123,7 @@ class _EditorPageState extends ConsumerState<EditorPage> {
         canvasKey: _canvasKey,
         initialImageFile: widget.initialImageFile,
         onEditSelectedText: _editSelectedText,
+        currentTool: _currentTool, // Mevcut aracı tuvale iletiyoruz
       ),
       bottomNavigationBar: EditorBottomBar(
         currentTool: _currentTool,

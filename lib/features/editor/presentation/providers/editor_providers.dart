@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_editor_app/features/editor/domain/entities/drawing_path.dart';
 import 'package:photo_editor_app/features/editor/domain/entities/editor_state.dart';
 import 'package:photo_editor_app/features/editor/domain/entities/filter_preset.dart';
 import 'package:photo_editor_app/features/editor/domain/entities/text_element.dart';
@@ -67,6 +69,36 @@ class EditorStateNotifier extends StateNotifier<EditorState> {
 
   void applyFilter(FilterPreset filter) {
     _recordChange(state.copyWith(activeFilter: filter));
+  }
+
+  // --- ÇİZİM YÖNETİMİ METOTLARI ---
+  void startDrawing(Offset point) {
+    final newPath = DrawingPath(points: [point], settings: state.drawingSettings);
+    final newDrawings = List<DrawingPath>.from(state.drawings)..add(newPath);
+    state = state.copyWith(drawings: newDrawings);
+  }
+
+  void updateDrawing(Offset point) {
+    if (state.drawings.isEmpty) return;
+    final lastPath = state.drawings.last;
+    final newPoints = List<Offset>.from(lastPath.points)..add(point);
+    final updatedPath = DrawingPath(points: newPoints, settings: lastPath.settings);
+    final updatedDrawings = List<DrawingPath>.from(state.drawings);
+    updatedDrawings.last = updatedPath;
+    state = state.copyWith(drawings: updatedDrawings);
+  }
+
+  void endDrawing() {
+    // Çizim bittiğinde, değişikliği geçmişe kaydet.
+    _recordChange(state);
+  }
+
+  void changeDrawingColor(Color color) {
+    state = state.copyWith(drawingSettings: state.drawingSettings.copyWith(color: color));
+  }
+
+  void changeDrawingStrokeWidth(double width) {
+    state = state.copyWith(drawingSettings: state.drawingSettings.copyWith(strokeWidth: width));
   }
 
   // --- METİN YÖNETİMİ METOTLARI ---

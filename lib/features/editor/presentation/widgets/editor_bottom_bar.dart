@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_editor_app/core/constants/app_colors.dart';
 import 'package:photo_editor_app/features/editor/presentation/screens/editor_page.dart';
 import 'package:photo_editor_app/features/editor/presentation/widgets/adjustment_panel.dart';
+import 'package:photo_editor_app/features/editor/presentation/widgets/drawing_panel.dart';
 import 'package:photo_editor_app/features/editor/presentation/widgets/filters_panel.dart';
 
 /// Editor sayfasındaki tüm alt navigasyon mantığını yöneten widget.
@@ -30,6 +31,9 @@ class EditorBottomBar extends StatelessWidget {
         return _buildToolWrapper(context, FiltersPanel(initialImageFile: initialImageFile));
       case EditorTool.adjustments:
         return _buildToolWrapper(context, AdjustmentPanel(initialImageFile: initialImageFile));
+      // YENİ: Çizim paneli durumu
+      case EditorTool.drawing:
+        return _buildToolWrapper(context, DrawingPanel(initialImageFile: initialImageFile));
       case EditorTool.none:
         return _buildDefaultNavigationBar();
     }
@@ -46,12 +50,15 @@ class EditorBottomBar extends StatelessWidget {
         if (index == 0) onCrop();
         if (index == 1) onToolSelected(EditorTool.filters);
         if (index == 2) onToolSelected(EditorTool.adjustments);
-        if (index == 3) onText();
+        if (index == 3) onToolSelected(EditorTool.drawing); // Çizim aracını seç
+        if (index == 4) onText(); // Metin aracı
       },
+      // DEĞİŞİKLİK: Yeni Çizim butonu eklendi.
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(icon: Icon(Icons.crop_rotate), label: 'Kırp'),
         BottomNavigationBarItem(icon: Icon(Icons.filter), label: 'Filtreler'),
         BottomNavigationBarItem(icon: Icon(Icons.tune), label: 'Ayarlar'),
+        BottomNavigationBarItem(icon: Icon(Icons.draw), label: 'Çizim'),
         BottomNavigationBarItem(icon: Icon(Icons.text_fields), label: 'Metin'),
       ],
     );
@@ -65,7 +72,7 @@ class EditorBottomBar extends StatelessWidget {
         children: [
           toolPanel,
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.check, color: Colors.white), // Kapat yerine Onayla
             onPressed: () => onToolSelected(EditorTool.none),
           ),
         ],
